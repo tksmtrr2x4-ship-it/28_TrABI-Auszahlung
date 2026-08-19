@@ -109,6 +109,8 @@ export default function AdminPage() {
       "IBAN",
       "E-Mail",
       "E-Mail-Status",
+      "AGB-Version",
+      "AGB akzeptiert am",
       "Zeitpunkt",
     ];
     const rows = zeilen.map((z) => [
@@ -120,6 +122,8 @@ export default function AdminPage() {
       z.iban || "",
       z.email || "",
       z.emailStatus || "",
+      z.agbVersion || "",
+      z.agbAkzeptiertAm ? zeitpunkt(z.agbAkzeptiertAm) : "",
       z.aktualisiertAm ? zeitpunkt(z.aktualisiertAm) : "",
     ]);
     const csv = [header, ...rows]

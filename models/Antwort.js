@@ -18,6 +18,11 @@ const AntwortSchema = new mongoose.Schema({
   iban: { type: String, default: null },
   email: { type: String, default: null },
 
+  // Nachweis der AGB-Zustimmung (Stand § in lib/agb.js), damit im Streitfall
+  // nachvollziehbar ist, wer wann welche Fassung akzeptiert hat.
+  agbAkzeptiertAm: { type: Date, default: null },
+  agbVersion: { type: String, default: null },
+
   emailStatus: {
     type: String,
     enum: ["gesendet", "fehler", "uebersprungen", "nicht_erforderlich"],

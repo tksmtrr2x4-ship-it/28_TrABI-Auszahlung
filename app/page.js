@@ -52,6 +52,10 @@ export default function Home() {
           <a className="underline hover:text-accent" href={`mailto:${CONTACT_EMAIL}`}>
             {CONTACT_EMAIL}
           </a>
+          {" · "}
+          <a className="underline hover:text-accent" href="/agb">
+            AGB
+          </a>
         </footer>
       </div>
     </main>

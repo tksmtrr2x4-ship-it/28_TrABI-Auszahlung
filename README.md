@@ -3,13 +3,18 @@
 Öffentliches Formular, das per Link (z.B. in der WhatsApp-Gruppe) geteilt
 wird. Jede:r Gesellschafter:in wählt ihren/seinen Namen aus, beantwortet
 "Möchtest du dein Geld ausgezahlt bekommen?" und gibt bei Ja IBAN + E-Mail
-an. Bei Ja verschickt das System automatisch und sofort eine professionelle
-Bestätigungs-Mail mit Anteil (%), Auszahlungsbetrag (€) und der eingegebenen
-IBAN. Eine passwortgeschützte Admin-Übersicht zeigt alle Rückmeldungen und
-exportiert sie als CSV für die Überweisungen.
+an. Vor dem Absenden muss die AGB des Auszahlungsprogramms (`app/AgbInhalt.jsx`,
+auch unter `/agb` einsehbar) per Pflicht-Checkbox bestätigt werden – Zeitpunkt
+und Version der Zustimmung werden pro Antwort gespeichert. Bei Ja verschickt
+das System automatisch und sofort eine professionelle Bestätigungs-Mail mit
+Anteil (%), voraussichtlichem Auszahlungsbetrag (€, vorläufig) und der
+eingegebenen IBAN. Eine passwortgeschützte Admin-Übersicht zeigt alle
+Rückmeldungen, erlaubt das Anpassen des aktuellen Gesamtvermögens und
+exportiert alles als CSV für die Überweisungen.
 
-**Rückmeldefrist:** 20.08.2026, 20:00 Uhr – 03.09.2026, 20:00 Uhr
-(einstellbar in `lib/config.js` bzw. per `FORM_OPEN_ISO` / `FORM_CLOSE_ISO`).
+**Rückmeldefrist:** 19.08.2026, 16:00 Uhr – 02.09.2026, 22:00 Uhr
+(einstellbar in `lib/config.js` bzw. per `FORM_OPEN_ISO` / `FORM_CLOSE_ISO`;
+muss mit § 4 Abs. 2 der AGB übereinstimmen, falls die AGB geändert wird).
 
 ## Wie die Teile zusammenspielen
 

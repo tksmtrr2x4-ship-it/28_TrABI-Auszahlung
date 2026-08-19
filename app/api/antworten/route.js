@@ -41,6 +41,8 @@ export async function GET(request) {
       iban: antwort?.iban ?? null,
       email: antwort?.email ?? null,
       emailStatus: antwort?.emailStatus ?? null,
+      agbVersion: antwort?.agbVersion ?? null,
+      agbAkzeptiertAm: antwort?.agbAkzeptiertAm ?? null,
       erstelltAm: antwort?.erstelltAm ?? null,
       aktualisiertAm: antwort?.aktualisiertAm ?? null,
     };
@@ -68,9 +70,17 @@ export async function POST(request) {
   const body = await request.json().catch(() => ({}));
   const gesellschafterId = String(body.gesellschafterId || "");
   const moechteAuszahlung = body.moechteAuszahlung === true;
+  const agbAkzeptiert = body.agbAkzeptiert === true;
+  const agbVersion = String(body.agbVersion || "");
 
   if (!mongoose.isValidObjectId(gesellschafterId)) {
     return Response.json({ error: "Bitte wähle deinen Namen aus der Liste aus." }, { status: 400 });
+  }
+  if (!agbAkzeptiert) {
+    return Response.json(
+      { error: "Bitte bestätige die AGB, um fortzufahren." },
+      { status: 400 }
+    );
   }
 
   await connectToDatabase();
@@ -122,6 +132,8 @@ export async function POST(request) {
     moechteAuszahlung,
     iban,
     email,
+    agbAkzeptiertAm: jetzt,
+    agbVersion,
     aktualisiertAm: jetzt,
     emailStatus: "nicht_erforderlich",
   };

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AGB_VERSION } from "@/lib/agb";
+import AgbInhalt from "./AgbInhalt";
 
 const inputClass =
   "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent";
@@ -12,6 +14,8 @@ export default function UmfrageForm({ deadline }) {
   const [moechteAuszahlung, setMoechteAuszahlung] = useState(null);
   const [iban, setIban] = useState("");
   const [email, setEmail] = useState("");
+  const [agbAkzeptiert, setAgbAkzeptiert] = useState(false);
+  const [agbOffen, setAgbOffen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [fehler, setFehler] = useState(null);
   const [ergebnis, setErgebnis] = useState(null);
@@ -38,6 +42,10 @@ export default function UmfrageForm({ deadline }) {
       setFehler("Bitte beantworte die Frage.");
       return;
     }
+    if (!agbAkzeptiert) {
+      setFehler("Bitte bestätige die AGB, um fortzufahren.");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -49,6 +57,8 @@ export default function UmfrageForm({ deadline }) {
           moechteAuszahlung,
           iban: moechteAuszahlung ? iban : undefined,
           email: moechteAuszahlung ? email : undefined,
+          agbAkzeptiert,
+          agbVersion: AGB_VERSION,
         }),
       });
       const data = await res.json();
@@ -94,6 +104,7 @@ export default function UmfrageForm({ deadline }) {
             setMoechteAuszahlung(null);
             setIban("");
             setEmail("");
+            setAgbAkzeptiert(false);
           }}
         >
           Angaben korrigieren
@@ -180,6 +191,37 @@ export default function UmfrageForm({ deadline }) {
           </div>
         </div>
       )}
+
+      <div className="rounded-xl border border-border p-4">
+        <button
+          type="button"
+          onClick={() => setAgbOffen((v) => !v)}
+          className="text-sm text-accent hover:underline font-medium"
+        >
+          {agbOffen ? "AGB ausblenden" : "AGB lesen"}
+        </button>
+        {agbOffen && (
+          <div className="mt-3 max-h-64 overflow-y-auto rounded-lg border border-border bg-background p-4">
+            <AgbInhalt />
+          </div>
+        )}
+        <label className="mt-3 flex items-start gap-2.5 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 rounded border-border accent-[color:var(--accent)]"
+            checked={agbAkzeptiert}
+            onChange={(e) => setAgbAkzeptiert(e.target.checked)}
+            required
+          />
+          <span>
+            Ich habe die{" "}
+            <a href="/agb" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
+              AGB für das Auszahlungsprogramm
+            </a>{" "}
+            gelesen und akzeptiere sie.
+          </span>
+        </label>
+      </div>
 
       {fehler && <p className="text-sm text-danger">{fehler}</p>}
 
