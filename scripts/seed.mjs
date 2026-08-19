@@ -7,11 +7,11 @@
 import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 import mongoose from "mongoose";
-import { parseVerteilungsschluessel } from "./parseVerteilungsschluessel.mjs";
+import { parseVerteilungsschluessel, parseGesamtvermoegen } from "./parseVerteilungsschluessel.mjs";
 
-// Schema hier bewusst dupliziert (statt models/Gesellschafter.js zu
-// importieren): das Skript läuft als reines Node-ESM-Skript außerhalb von
-// Next.js, ein Cross-Import würde CommonJS/ESM-Probleme verursachen.
+// Schemas hier bewusst dupliziert (statt models/*.js zu importieren): das
+// Skript läuft als reines Node-ESM-Skript außerhalb von Next.js, ein
+// Cross-Import würde CommonJS/ESM-Probleme verursachen.
 const GesellschafterSchema = new mongoose.Schema({
   vorname: { type: String, required: true, trim: true },
   nachname: { type: String, required: true, trim: true },
@@ -21,6 +21,14 @@ const GesellschafterSchema = new mongoose.Schema({
 });
 const Gesellschafter =
   mongoose.models.Gesellschafter || mongoose.model("Gesellschafter", GesellschafterSchema);
+
+const EinstellungenSchema = new mongoose.Schema({
+  schluessel: { type: String, required: true, unique: true, default: "global" },
+  gesamtvermoegenEuro: { type: Number, required: true },
+  aktualisiertAm: { type: Date, default: Date.now },
+});
+const Einstellungen =
+  mongoose.models.Einstellungen || mongoose.model("Einstellungen", EinstellungenSchema);
 
 async function main() {
   const xlsxPath = process.env.SEED_XLSX_PATH;
@@ -45,6 +53,21 @@ async function main() {
   await Gesellschafter.deleteMany({});
   await Gesellschafter.insertMany(people);
   console.log(`${people.length} Gesellschafter:innen importiert.`);
+
+  // Gesamtvermögen nur beim allerersten Import setzen (aus der Excel-Datei),
+  // spätere Anpassungen laufen über den Admin-Bereich und dürfen hier nicht
+  // überschrieben werden.
+  const bestehend = await Einstellungen.findOne({ schluessel: "global" });
+  if (!bestehend) {
+    const initialwert = parseGesamtvermoegen(xlsxPath) ?? summeBetrag;
+    await Einstellungen.create({ schluessel: "global", gesamtvermoegenEuro: initialwert });
+    console.log(`Gesamtvermögen initial gesetzt: ${initialwert.toFixed(2)} €`);
+  } else {
+    console.log(
+      `Gesamtvermögen bereits gesetzt (${bestehend.gesamtvermoegenEuro.toFixed(2)} €) – unverändert gelassen. Anpassung über /admin.`
+    );
+  }
+
   await mongoose.disconnect();
 }
 

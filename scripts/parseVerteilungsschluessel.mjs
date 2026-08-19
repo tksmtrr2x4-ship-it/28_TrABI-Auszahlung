@@ -55,3 +55,18 @@ export function parseVerteilungsschluessel(xlsxPath) {
 
   return people;
 }
+
+// Liest das aktuelle Gesamtvermögen aus dem Blatt "Annahmen" (Zeile
+// "Gesellschaftsvermögen bei Auflösung (€)"). Gibt null zurück, falls nicht
+// gefunden – der Aufrufer entscheidet dann über einen Fallback.
+export function parseGesamtvermoegen(xlsxPath) {
+  const workbook = XLSX.readFile(xlsxPath);
+  const sheet = workbook.Sheets["Annahmen"];
+  if (!sheet) return null;
+
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true });
+  const treffer = rows.find(
+    (row) => String(row[0] || "").trim() === "Gesellschaftsvermögen bei Auflösung (€)"
+  );
+  return treffer ? Number(treffer[1]) : null;
+}

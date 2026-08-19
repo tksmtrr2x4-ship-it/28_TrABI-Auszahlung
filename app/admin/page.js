@@ -23,25 +23,62 @@ function zeitpunkt(value) {
 export default function AdminPage() {
   const [pin, setPin] = useState("");
   const [zeilen, setZeilen] = useState(null);
+  const [gesamtvermoegen, setGesamtvermoegen] = useState(null);
+  const [gesamtvermoegenEntwurf, setGesamtvermoegenEntwurf] = useState("");
+  const [speichertGesamtvermoegen, setSpeichertGesamtvermoegen] = useState(false);
+  const [gesamtvermoegenFehler, setGesamtvermoegenFehler] = useState(null);
   const [fehler, setFehler] = useState(null);
   const [ladend, setLadend] = useState(false);
 
-  async function laden(event) {
-    event?.preventDefault();
+  async function laden(aktuellePin) {
+    const res = await fetch("/api/antworten", { headers: { "x-pin": aktuellePin } });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || "Zugriff verweigert.");
+    }
+    const data = await res.json();
+    setZeilen(data.zeilen);
+    setGesamtvermoegen(data.gesamtvermoegenEuro);
+    setGesamtvermoegenEntwurf(String(data.gesamtvermoegenEuro));
+  }
+
+  async function anmelden(event) {
+    event.preventDefault();
     setLadend(true);
     setFehler(null);
     try {
-      const res = await fetch("/api/antworten", { headers: { "x-pin": pin } });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Zugriff verweigert.");
-      }
-      setZeilen(await res.json());
+      await laden(pin);
     } catch (err) {
       setFehler(err.message);
       setZeilen(null);
     } finally {
       setLadend(false);
+    }
+  }
+
+  async function gesamtvermoegenSpeichern(event) {
+    event.preventDefault();
+    const value = Number(gesamtvermoegenEntwurf.replace(",", "."));
+    if (!Number.isFinite(value) || value < 0) {
+      setGesamtvermoegenFehler("Bitte einen gültigen Betrag angeben.");
+      return;
+    }
+    setSpeichertGesamtvermoegen(true);
+    setGesamtvermoegenFehler(null);
+    try {
+      const res = await fetch("/api/einstellungen", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "x-pin": pin },
+        body: JSON.stringify({ gesamtvermoegenEuro: value }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Speichern fehlgeschlagen.");
+      // Beträge in der Tabelle sofort mit dem neuen Gesamtvermögen neu laden.
+      await laden(pin);
+    } catch (err) {
+      setGesamtvermoegenFehler(err.message);
+    } finally {
+      setSpeichertGesamtvermoegen(false);
     }
   }
 
@@ -66,8 +103,8 @@ export default function AdminPage() {
     const header = [
       "Nachname",
       "Vorname",
-      "Anteil (%)",
-      "Betrag (EUR)",
+      "Anteil (%, verbindlich)",
+      "Betrag (EUR, vorläufig)",
       "Antwort",
       "IBAN",
       "E-Mail",
@@ -100,7 +137,7 @@ export default function AdminPage() {
   if (!zeilen) {
     return (
       <main className="flex-1 flex flex-col items-center justify-center px-4 py-16">
-        <form onSubmit={laden} className="w-full max-w-xs space-y-3">
+        <form onSubmit={anmelden} className="w-full max-w-xs space-y-3">
           <h1 className="text-lg font-semibold text-center mb-4">
             {ORG_NAME} · Admin
           </h1>
@@ -137,13 +174,49 @@ export default function AdminPage() {
         </button>
       </div>
 
+      <form
+        onSubmit={gesamtvermoegenSpeichern}
+        className="mb-6 rounded-xl border border-border bg-card p-4 flex flex-wrap items-end gap-3"
+      >
+        <div>
+          <label className="block text-xs font-medium text-foreground/60 mb-1" htmlFor="gesamtvermoegen">
+            Gesamtvermögen der Stufenkasse (aktuell, vorläufig)
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              id="gesamtvermoegen"
+              type="text"
+              inputMode="decimal"
+              className="w-40 rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              value={gesamtvermoegenEntwurf}
+              onChange={(e) => setGesamtvermoegenEntwurf(e.target.value)}
+            />
+            <span className="text-sm text-foreground/60">€</span>
+          </div>
+        </div>
+        <button
+          type="submit"
+          disabled={speichertGesamtvermoegen}
+          className="rounded-lg bg-accent hover:bg-accent-dark disabled:opacity-60 text-white text-sm font-medium px-4 py-2"
+        >
+          {speichertGesamtvermoegen ? "Speichert …" : "Aktualisieren"}
+        </button>
+        <p className="text-xs text-foreground/50 w-full">
+          Aktuell hinterlegt: {gesamtvermoegen !== null ? euro(gesamtvermoegen) : "–"}. Änderungen
+          wirken sich sofort auf alle unten angezeigten Beträge sowie auf künftig verschickte
+          Bestätigungs-E-Mails aus (bereits verschickte E-Mails werden nicht automatisch neu
+          versendet).
+        </p>
+        {gesamtvermoegenFehler && <p className="text-sm text-danger w-full">{gesamtvermoegenFehler}</p>}
+      </form>
+
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
           <Stat label="Gesamt" value={stats.gesamt} />
           <Stat label="Beantwortet" value={stats.beantwortet} />
           <Stat label="Ausstehend" value={stats.ausstehend} accent />
           <Stat label="Ja / Nein" value={`${stats.ja} / ${stats.nein}`} />
-          <Stat label="Summe (Ja)" value={euro(stats.summeJa)} />
+          <Stat label="Summe (Ja, vorläufig)" value={euro(stats.summeJa)} />
         </div>
       )}
 
@@ -152,8 +225,8 @@ export default function AdminPage() {
           <thead className="bg-accent-light text-accent-dark text-left">
             <tr>
               <Th>Name</Th>
-              <Th>Anteil</Th>
-              <Th>Betrag</Th>
+              <Th>Anteil (verbindlich)</Th>
+              <Th>Betrag (vorläufig)</Th>
               <Th>Antwort</Th>
               <Th>IBAN</Th>
               <Th>E-Mail</Th>

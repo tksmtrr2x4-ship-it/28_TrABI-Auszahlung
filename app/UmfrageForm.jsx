@@ -72,8 +72,10 @@ export default function UmfrageForm({ deadline }) {
         <h2 className="text-lg font-semibold mb-2">Danke für deine Rückmeldung</h2>
         {ergebnis.moechteAuszahlung ? (
           <p className="text-sm text-foreground/70 leading-relaxed">
-            Wir haben dir eine Bestätigung mit deinem Anteil und Betrag per E-Mail
-            geschickt. Prüfe dort bitte auch deine IBAN.
+            Wir haben dir eine Bestätigung mit deinem Anteil und dem aktuell
+            voraussichtlichen Betrag per E-Mail geschickt. Prüfe dort bitte auch
+            deine IBAN. Verbindlich ist nur dein Prozentanteil — der Euro-Betrag
+            ist vorläufig, da die Kasse noch belastet wird.
           </p>
         ) : (
           <p className="text-sm text-foreground/70 leading-relaxed">

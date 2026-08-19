@@ -11,7 +11,7 @@ dotenv.config({ path: ".env.local" });
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { spawn } from "node:child_process";
 import mongoose from "mongoose";
-import { parseVerteilungsschluessel } from "./parseVerteilungsschluessel.mjs";
+import { parseVerteilungsschluessel, parseGesamtvermoegen } from "./parseVerteilungsschluessel.mjs";
 
 const mongod = await MongoMemoryServer.create();
 const uri = mongod.getUri("trabi-auszahlung");
@@ -28,10 +28,20 @@ if (process.env.SEED_XLSX_PATH) {
   });
   const Gesellschafter = mongoose.model("Gesellschafter", GesellschafterSchema);
 
+  const EinstellungenSchema = new mongoose.Schema({
+    schluessel: { type: String, required: true, unique: true, default: "global" },
+    gesamtvermoegenEuro: { type: Number, required: true },
+    aktualisiertAm: { type: Date, default: Date.now },
+  });
+  const Einstellungen = mongoose.model("Einstellungen", EinstellungenSchema);
+
   try {
     const people = parseVerteilungsschluessel(process.env.SEED_XLSX_PATH);
+    const gesamtvermoegen =
+      parseGesamtvermoegen(process.env.SEED_XLSX_PATH) ?? people.reduce((s, p) => s + p.betrag, 0);
     await mongoose.connect(uri);
     await Gesellschafter.insertMany(people);
+    await Einstellungen.create({ schluessel: "global", gesamtvermoegenEuro: gesamtvermoegen });
     console.log(`Dev-Seed: ${people.length} Gesellschafter:innen in die In-Memory-DB geladen.`);
     await mongoose.disconnect();
   } catch (err) {

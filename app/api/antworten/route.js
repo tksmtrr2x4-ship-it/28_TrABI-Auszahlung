@@ -6,6 +6,7 @@ import { isAdmin, forbiddenResponse } from "@/lib/auth";
 import { isValidIban, normalizeIban } from "@/lib/iban";
 import { formularPhase, formatDeadline, FORM_OPEN, FORM_CLOSE } from "@/lib/config";
 import { sendAuszahlungsBestaetigung } from "@/lib/mail";
+import { getGesamtvermoegen } from "@/lib/einstellungen";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -14,9 +15,10 @@ export async function GET(request) {
   if (!isAdmin(request)) return forbiddenResponse();
 
   await connectToDatabase();
-  const [gesellschafter, antworten] = await Promise.all([
+  const [gesellschafter, antworten, gesamtvermoegenEuro] = await Promise.all([
     Gesellschafter.find({}).sort({ nachname: 1, vorname: 1 }).lean(),
     Antwort.find({}).lean(),
+    getGesamtvermoegen(),
   ]);
 
   const antwortByGesellschafter = new Map(
@@ -30,7 +32,9 @@ export async function GET(request) {
       vorname: g.vorname,
       nachname: g.nachname,
       anteilProzent: g.anteilProzent,
-      betrag: g.betrag,
+      // Live berechnet aus dem aktuellen (vorläufigen) Gesamtvermögen, NICHT
+      // der beim Import fixierte Wert – die Kasse kann noch belastet werden.
+      betrag: (g.anteilProzent / 100) * gesamtvermoegenEuro,
       status: g.status,
       geantwortet: Boolean(antwort),
       moechteAuszahlung: antwort?.moechteAuszahlung ?? null,
@@ -42,7 +46,7 @@ export async function GET(request) {
     };
   });
 
-  return Response.json(zeilen);
+  return Response.json({ zeilen, gesamtvermoegenEuro });
 }
 
 // Öffentlich: Formular-Einreichung (auch als Korrektur einer vorherigen Antwort).
@@ -103,12 +107,18 @@ export async function POST(request) {
     }
   }
 
+  // Live berechnet, NICHT der beim Import fixierte Wert: der Prozentanteil
+  // ist verbindlich, der daraus resultierende Euro-Betrag aber vorläufig,
+  // solange die Kasse noch belastet wird (siehe Hinweis in der E-Mail).
+  const gesamtvermoegenEuro = await getGesamtvermoegen();
+  const betrag = (gesellschafter.anteilProzent / 100) * gesamtvermoegenEuro;
+
   const jetzt = new Date();
   const update = {
     vorname: gesellschafter.vorname,
     nachname: gesellschafter.nachname,
     anteilProzent: gesellschafter.anteilProzent,
-    betrag: gesellschafter.betrag,
+    betrag,
     moechteAuszahlung,
     iban,
     email,
@@ -131,7 +141,7 @@ export async function POST(request) {
         vorname: gesellschafter.vorname,
         nachname: gesellschafter.nachname,
         anteilProzent: gesellschafter.anteilProzent,
-        betrag: gesellschafter.betrag,
+        betrag,
         iban,
       });
       antwort.emailStatus = ergebnis.skipped ? "uebersprungen" : "gesendet";
