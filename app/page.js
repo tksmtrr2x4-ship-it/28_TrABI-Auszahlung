@@ -40,7 +40,7 @@ export default function Home() {
           {phase === "nach" && (
             <StatusMessage
               title="Die Frist ist abgelaufen"
-              text={`Die Rückmeldefrist endete am ${formatDeadline(FORM_CLOSE)}. Falls du dich noch nicht gemeldet hast, wende dich bitte direkt an uns.`}
+              text={`Die Rückmeldefrist endete am ${formatDeadline(FORM_CLOSE)}. Anfragen ausserhalb dieser Frist können nicht berücksichtig werden :/.`}
             />
           )}
 
