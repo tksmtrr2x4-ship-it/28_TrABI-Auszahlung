@@ -29,6 +29,17 @@ const AntwortSchema = new mongoose.Schema({
     default: "nicht_erforderlich",
   },
 
+  // Finale Abschluss-Mail inkl. PDF (nach Fristablauf, endgültiger Betrag).
+  // Getrennt von emailStatus (das ist die vorläufige Bestätigung direkt
+  // nach dem Ausfüllen des Formulars).
+  abschlussStatus: {
+    type: String,
+    enum: ["gesendet", "fehler", "uebersprungen", null],
+    default: null,
+  },
+  abschlussVersandAm: { type: Date, default: null },
+  abschlussBetrag: { type: Number, default: null },
+
   erstelltAm: { type: Date, default: Date.now },
   aktualisiertAm: { type: Date, default: Date.now },
 });

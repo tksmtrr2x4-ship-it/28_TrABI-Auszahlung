@@ -8,6 +8,9 @@ import mongoose from "mongoose";
 const EinstellungenSchema = new mongoose.Schema({
   schluessel: { type: String, required: true, unique: true, default: "global" },
   gesamtvermoegenEuro: { type: Number, required: true },
+  // Erläuterungstext für die finale Abschluss-Mail/PDF (z.B. Begründung für
+  // einen geringeren Betrag als ursprünglich in Aussicht gestellt).
+  abschlussText: { type: String, default: "" },
   aktualisiertAm: { type: Date, default: Date.now },
 });
 

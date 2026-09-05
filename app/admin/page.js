@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { ORG_NAME } from "@/lib/config";
+import NichtAntworterPanel from "./NichtAntworterPanel";
+import AbschlussPanel from "./AbschlussPanel";
 
 function euro(value) {
   return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(value);
@@ -85,13 +87,16 @@ export default function AdminPage() {
   const stats = useMemo(() => {
     if (!zeilen) return null;
     const beantwortet = zeilen.filter((z) => z.geantwortet);
+    const ausgeschlossen = zeilen.filter((z) => z.status !== "Aktiv");
+    const ausstehend = zeilen.filter((z) => !z.geantwortet && z.status === "Aktiv");
     const ja = zeilen.filter((z) => z.moechteAuszahlung === true);
     const nein = zeilen.filter((z) => z.moechteAuszahlung === false);
     const summeJa = ja.reduce((s, z) => s + z.betrag, 0);
     return {
       gesamt: zeilen.length,
       beantwortet: beantwortet.length,
-      ausstehend: zeilen.length - beantwortet.length,
+      ausstehend: ausstehend.length,
+      ausgeschlossen: ausgeschlossen.length,
       ja: ja.length,
       nein: nein.length,
       summeJa,
@@ -103,6 +108,7 @@ export default function AdminPage() {
     const header = [
       "Nachname",
       "Vorname",
+      "Status",
       "Anteil (%, verbindlich)",
       "Betrag (EUR, vorläufig)",
       "Antwort",
@@ -116,9 +122,10 @@ export default function AdminPage() {
     const rows = zeilen.map((z) => [
       z.nachname,
       z.vorname,
+      z.status,
       prozent(z.anteilProzent),
       z.betrag.toFixed(2).replace(".", ","),
-      z.geantwortet ? (z.moechteAuszahlung ? "Ja" : "Nein") : "Ausstehend",
+      z.status !== "Aktiv" ? "Ausgeschlossen" : z.geantwortet ? (z.moechteAuszahlung ? "Ja" : "Nein") : "Ausstehend",
       z.iban || "",
       z.email || "",
       z.emailStatus || "",
@@ -214,11 +221,14 @@ export default function AdminPage() {
         {gesamtvermoegenFehler && <p className="text-sm text-danger w-full">{gesamtvermoegenFehler}</p>}
       </form>
 
+      <NichtAntworterPanel pin={pin} onChanged={() => laden(pin)} />
+
       {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 mb-6">
           <Stat label="Gesamt" value={stats.gesamt} />
           <Stat label="Beantwortet" value={stats.beantwortet} />
           <Stat label="Ausstehend" value={stats.ausstehend} accent />
+          <Stat label="Ausgeschlossen" value={stats.ausgeschlossen} />
           <Stat label="Ja / Nein" value={`${stats.ja} / ${stats.nein}`} />
           <Stat label="Summe (Ja, vorläufig)" value={euro(stats.summeJa)} />
         </div>
@@ -245,9 +255,16 @@ export default function AdminPage() {
                 <Td>{prozent(z.anteilProzent)} %</Td>
                 <Td>{euro(z.betrag)}</Td>
                 <Td>
-                  {!z.geantwortet && <span className="text-foreground/40">Ausstehend</span>}
-                  {z.geantwortet && z.moechteAuszahlung && <span className="text-accent-dark font-medium">Ja</span>}
-                  {z.geantwortet && !z.moechteAuszahlung && <span>Nein</span>}
+                  {z.status !== "Aktiv" && (
+                    <span className="text-foreground/40" title={z.status}>Ausgeschlossen</span>
+                  )}
+                  {z.status === "Aktiv" && !z.geantwortet && (
+                    <span className="text-foreground/40">Ausstehend</span>
+                  )}
+                  {z.status === "Aktiv" && z.geantwortet && z.moechteAuszahlung && (
+                    <span className="text-accent-dark font-medium">Ja</span>
+                  )}
+                  {z.status === "Aktiv" && z.geantwortet && !z.moechteAuszahlung && <span>Nein</span>}
                 </Td>
                 <Td className="font-mono text-xs">{z.iban || "–"}</Td>
                 <Td>{z.email || "–"}</Td>
@@ -257,6 +274,10 @@ export default function AdminPage() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="mt-6">
+        <AbschlussPanel pin={pin} />
       </div>
     </main>
   );
