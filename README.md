@@ -125,6 +125,26 @@ Wer sich verschrieben hat (z.B. falsche IBAN), kann das Formular einfach
 erneut ausfüllen – die vorherige Antwort wird überschrieben und eine neue
 Bestätigungs-Mail verschickt.
 
+### Nach Fristablauf: Abschluss
+
+Im Admin-Bereich gibt es zwei weitere Aktionen für den Abschluss:
+
+- **Nicht-Antworter ausschließen** – markiert alle Gesellschafter:innen ohne
+  Antwort als "Ausgeschlossen (Frist verpasst)" (§ 6 AGB). Kein Hard-Delete,
+  der Datensatz bleibt für die Buchhaltung nachvollziehbar.
+- **Abschluss versenden** – verschickt an alle "Ja"-Antworten den
+  endgültigen Betrag als E-Mail inkl. professionellem PDF-Anhang (erzeugt
+  mit `pdfkit`, siehe `lib/pdf.js`). Ein frei editierbarer Erläuterungstext
+  (z.B. Begründung für einen geringeren Betrag) wird in beiden mit
+  ausgegeben. Vor dem Massenversand lässt sich eine Testmail an die eigene
+  Adresse schicken. Das Kopfzeilen-Badge im PDF zeigt den
+  Engagement-Faktor (1–3, aus dem Verteilungsschlüssel) in der
+  Graffiti-Schrift ["Bangers"](https://github.com/googlefonts/bangers)
+  (Google Fonts, SIL Open Font License – Lizenztext liegt unter
+  `assets/fonts/Bangers-OFL.txt`, die Schrift selbst ist als Base64 in
+  `lib/fonts-bangers.js` eingebettet, damit sie zuverlässig mit der
+  Vercel-Funktion ausgeliefert wird).
+
 ## Datenschutz & Sicherheit
 
 - Es werden nur die Angaben gespeichert, die für die Auszahlung nötig sind:

@@ -10,6 +10,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generierte Font-Daten (Base64), kein handgeschriebener Code.
+    "lib/fonts-bangers.js",
   ]),
 ]);
 

@@ -56,6 +56,7 @@ export async function POST(request) {
       anteilProzent: 3.34,
       betrag: (3.34 / 100) * gesamtvermoegenEuro,
       erklaerungText: abschlussText,
+      engagementFaktor: 3,
     });
     try {
       await sendAbschlussMail({
@@ -79,11 +80,20 @@ export async function POST(request) {
     : { moechteAuszahlung: true, abschlussStatus: { $ne: "gesendet" } };
   const empfaenger = await Antwort.find(filter);
 
+  const gesellschafterListe = await Gesellschafter.find(
+    { _id: { $in: empfaenger.map((a) => a.gesellschafter) } },
+    { engagementFaktor: 1 }
+  ).lean();
+  const engagementByGesellschafter = new Map(
+    gesellschafterListe.map((g) => [g._id.toString(), g.engagementFaktor])
+  );
+
   let gesendet = 0;
   const fehler = [];
 
   for (const antwort of empfaenger) {
     const betrag = (antwort.anteilProzent / 100) * gesamtvermoegenEuro;
+    const engagementFaktor = engagementByGesellschafter.get(antwort.gesellschafter.toString()) ?? null;
     try {
       const pdfBuffer = await buildAbschlussPdf({
         vorname: antwort.vorname,
@@ -91,6 +101,7 @@ export async function POST(request) {
         anteilProzent: antwort.anteilProzent,
         betrag,
         erklaerungText: abschlussText,
+        engagementFaktor,
       });
       const ergebnis = await sendAbschlussMail({
         to: antwort.email,

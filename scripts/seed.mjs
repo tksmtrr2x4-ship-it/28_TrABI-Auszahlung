@@ -17,6 +17,7 @@ const GesellschafterSchema = new mongoose.Schema({
   nachname: { type: String, required: true, trim: true },
   anteilProzent: { type: Number, required: true },
   betrag: { type: Number, required: true },
+  engagementFaktor: { type: Number, default: null },
   status: { type: String, default: "Aktiv" },
 });
 const Gesellschafter =

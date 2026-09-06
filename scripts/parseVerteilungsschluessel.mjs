@@ -7,6 +7,7 @@ const SHEET_NAME = "Gesellschafterliste";
 // H Klassenanteil am Gesamtvermögen | I Anteil am Gesamtvermögen |
 // J Betrag bei Auflösung | K Status
 const COL_NAME = 1;
+const COL_ENGAGEMENT = 4;
 const COL_ANTEIL = 8;
 const COL_BETRAG = 9;
 const COL_STATUS = 10;
@@ -34,6 +35,9 @@ export function parseVerteilungsschluessel(xlsxPath) {
 
     const anteilFraction = Number(row[COL_ANTEIL]) || 0;
     const betrag = Number(row[COL_BETRAG]) || 0;
+    const engagementFaktor = row[COL_ENGAGEMENT] !== undefined && row[COL_ENGAGEMENT] !== null
+      ? Number(row[COL_ENGAGEMENT])
+      : null;
     const [nachname, vorname] = String(rawName)
       .split(",")
       .map((teil) => teil.trim());
@@ -43,6 +47,7 @@ export function parseVerteilungsschluessel(xlsxPath) {
       vorname: vorname || "",
       anteilProzent: anteilFraction * 100,
       betrag,
+      engagementFaktor,
       status,
     });
   }

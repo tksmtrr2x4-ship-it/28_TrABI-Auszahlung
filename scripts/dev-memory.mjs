@@ -24,6 +24,7 @@ if (process.env.SEED_XLSX_PATH) {
     nachname: String,
     anteilProzent: Number,
     betrag: Number,
+    engagementFaktor: Number,
     status: { type: String, default: "Aktiv" },
   });
   const Gesellschafter = mongoose.model("Gesellschafter", GesellschafterSchema);
