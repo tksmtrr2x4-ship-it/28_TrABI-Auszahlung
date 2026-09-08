@@ -107,7 +107,7 @@ export default function SepaPanel({ pin }) {
     <div className="mb-6 rounded-xl border border-border bg-card p-4">
       <h2 className="text-sm font-semibold mb-1">SEPA-Sammelüberweisung</h2>
       <p className="text-xs text-foreground/50 mb-3">
-        Erzeugt eine SEPA-XML-Datei (pain.001), die sich im Online-Banking eurer Bank als
+        Erzeugt eine SEPA-XML-Datei (pain.001.001.09), die sich im Online-Banking eurer Bank als
         Sammelüberweisung hochladen lässt – alle &quot;Ja&quot;-Antworten mit gültiger IBAN in einer Datei.
         Wer im Admin als &quot;spendet&quot; markiert ist, wird automatisch ans Spendenkonto
         umgeleitet (mit Namen im Verwendungszweck).
