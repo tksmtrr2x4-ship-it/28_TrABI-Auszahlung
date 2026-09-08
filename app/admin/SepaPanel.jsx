@@ -138,13 +138,13 @@ export default function SepaPanel({ pin }) {
         </div>
         <div>
           <label className="block text-xs font-medium text-foreground/60 mb-1">
-            BIC (optional)
+            BIC eures Kontos (empfohlen)
           </label>
           <input
             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
             value={bic}
             onChange={(e) => setBic(e.target.value)}
-            placeholder="Nur falls von der Bank verlangt"
+            placeholder="z.B. SOLADES1XXX – steht auf eurem Kontoauszug"
           />
         </div>
         <div>
