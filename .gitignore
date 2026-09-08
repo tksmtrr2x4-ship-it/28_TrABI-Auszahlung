@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# echte Bankdaten-Referenzdatei (lokal zum Abgleich, nie committen)
+/scripts/referenz-xml/
+
 # vercel
 .vercel
 
