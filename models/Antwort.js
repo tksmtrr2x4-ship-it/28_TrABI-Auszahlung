@@ -18,6 +18,14 @@ const AntwortSchema = new mongoose.Schema({
   iban: { type: String, default: null },
   email: { type: String, default: null },
 
+  // Manuell im Admin gesetzt (z.B. nachträgliche Rückmeldung per E-Mail):
+  // Person möchte ihren Betrag stattdessen spenden. Wirkt sich auf den
+  // SEPA-Export (Empfänger = Spendenkonto statt eigener IBAN) und die
+  // Abschluss-Mail aus.
+  spendet: { type: Boolean, default: false },
+  bearbeitetAm: { type: Date, default: null },
+  bearbeitungsHinweis: { type: String, default: null },
+
   // Nachweis der AGB-Zustimmung (Stand § in lib/agb.js), damit im Streitfall
   // nachvollziehbar ist, wer wann welche Fassung akzeptiert hat.
   agbAkzeptiertAm: { type: Date, default: null },

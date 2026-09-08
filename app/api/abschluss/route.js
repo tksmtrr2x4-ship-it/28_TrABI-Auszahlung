@@ -23,6 +23,7 @@ export async function GET(request) {
     vorname: a.vorname,
     nachname: a.nachname,
     email: a.email,
+    spendet: a.spendet,
     anteilProzent: a.anteilProzent,
     betrag: (a.anteilProzent / 100) * gesamtvermoegenEuro,
     abschlussStatus: a.abschlussStatus,
@@ -102,6 +103,7 @@ export async function POST(request) {
         betrag,
         erklaerungText: abschlussText,
         engagementFaktor,
+        spendet: antwort.spendet,
       });
       const ergebnis = await sendAbschlussMail({
         to: antwort.email,
@@ -110,6 +112,7 @@ export async function POST(request) {
         anteilProzent: antwort.anteilProzent,
         betrag,
         erklaerungText: abschlussText,
+        spendet: antwort.spendet,
         pdfBuffer,
       });
       antwort.abschlussStatus = ergebnis.skipped ? "uebersprungen" : "gesendet";

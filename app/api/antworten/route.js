@@ -29,6 +29,7 @@ export async function GET(request) {
     const antwort = antwortByGesellschafter.get(g._id.toString()) || null;
     return {
       id: g._id.toString(),
+      antwortId: antwort?._id.toString() ?? null,
       vorname: g.vorname,
       nachname: g.nachname,
       anteilProzent: g.anteilProzent,
@@ -40,6 +41,8 @@ export async function GET(request) {
       moechteAuszahlung: antwort?.moechteAuszahlung ?? null,
       iban: antwort?.iban ?? null,
       email: antwort?.email ?? null,
+      spendet: antwort?.spendet ?? false,
+      bearbeitungsHinweis: antwort?.bearbeitungsHinweis ?? null,
       emailStatus: antwort?.emailStatus ?? null,
       agbVersion: antwort?.agbVersion ?? null,
       agbAkzeptiertAm: antwort?.agbAkzeptiertAm ?? null,

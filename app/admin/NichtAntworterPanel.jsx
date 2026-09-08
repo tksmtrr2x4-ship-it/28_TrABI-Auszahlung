@@ -51,7 +51,7 @@ export default function NichtAntworterPanel({ pin, onChanged }) {
     <div className="mb-6 rounded-xl border border-border bg-card p-4">
       <h2 className="text-sm font-semibold mb-1">Nicht-Antworter ausschließen</h2>
       <p className="text-xs text-foreground/50 mb-3">
-        Markiert alle Gesellschafter:innen ohne Antwort als "ausgeschlossen" (Frist verpasst, § 6
+        Markiert alle Gesellschafter:innen ohne Antwort als &quot;ausgeschlossen&quot; (Frist verpasst, § 6
         AGB). Der Datensatz bleibt erhalten, taucht aber nicht mehr in der aktiven Verteilung auf –
         kein endgültiges Löschen.
       </p>

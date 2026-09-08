@@ -17,6 +17,10 @@ const EinstellungenSchema = new mongoose.Schema({
   sepaKontoinhaber: { type: String, default: "" },
   sepaIban: { type: String, default: "" },
   sepaBic: { type: String, default: "" },
+  // Ziel-Konto für Personen, die ihren Betrag stattdessen spenden (statt
+  // eigener IBAN wird dieses Konto als Empfänger im SEPA-Export genutzt).
+  spendenKontoinhaber: { type: String, default: "" },
+  spendenKontoIban: { type: String, default: "" },
   aktualisiertAm: { type: Date, default: Date.now },
 });
 

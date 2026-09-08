@@ -104,9 +104,9 @@ export default function AbschlussPanel({ pin }) {
     <div className="mb-6 rounded-xl border border-border bg-card p-4">
       <h2 className="text-sm font-semibold mb-1">Abschluss versenden</h2>
       <p className="text-xs text-foreground/50 mb-3">
-        Verschickt an alle, die "Ja" geantwortet haben, den endgültigen Betrag als E-Mail + PDF –
+        Verschickt an alle, die &quot;Ja&quot; geantwortet haben, den endgültigen Betrag als E-Mail + PDF –
         inklusive deiner Erläuterung unten. Bereits gesendete werden beim normalen Versand
-        übersprungen, außer du aktivierst "alle erneut senden".
+        übersprungen, außer du aktivierst &quot;alle erneut senden&quot;.
       </p>
 
       <label className="block text-xs font-medium text-foreground/60 mb-1" htmlFor="abschlussText">
@@ -180,7 +180,10 @@ export default function AbschlussPanel({ pin }) {
             <tbody>
               {empfaenger.map((e) => (
                 <tr key={e.id} className="border-t border-border">
-                  <td className="px-2 py-1.5">{e.vorname} {e.nachname}</td>
+                  <td className="px-2 py-1.5">
+                    {e.vorname} {e.nachname}
+                    {e.spendet && <span className="text-accent-dark"> · spendet</span>}
+                  </td>
                   <td className="px-2 py-1.5">{euro(e.betrag)}</td>
                   <td className="px-2 py-1.5">{e.abschlussStatus || "offen"}</td>
                 </tr>

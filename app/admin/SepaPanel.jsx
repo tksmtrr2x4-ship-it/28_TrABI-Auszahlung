@@ -16,10 +16,12 @@ export default function SepaPanel({ pin }) {
   const [kontoinhaber, setKontoinhaber] = useState("");
   const [iban, setIban] = useState("");
   const [bic, setBic] = useState("");
+  const [spendenKontoinhaber, setSpendenKontoinhaber] = useState("");
+  const [spendenKontoIban, setSpendenKontoIban] = useState("");
   const [ausfuehrungsdatum, setAusfuehrungsdatum] = useState(standardAusfuehrungsdatum());
   const [verwendungszweck, setVerwendungszweck] = useState("Stufenkasse TrABI 2026");
   const [zahlungen, setZahlungen] = useState(null);
-  const [ohneGueltigeIban, setOhneGueltigeIban] = useState(0);
+  const [ausgelassen, setAusgelassen] = useState([]);
   const [ladend, setLadend] = useState(false);
   const [erzeugend, setErzeugend] = useState(false);
   const [fehler, setFehler] = useState(null);
@@ -35,8 +37,10 @@ export default function SepaPanel({ pin }) {
       setKontoinhaber(data.sepaKontoinhaber || "");
       setIban(data.sepaIban || "");
       setBic(data.sepaBic || "");
+      setSpendenKontoinhaber(data.spendenKontoinhaber || "");
+      setSpendenKontoIban(data.spendenKontoIban || "");
       setZahlungen(data.zahlungen);
-      setOhneGueltigeIban(data.ohneGueltigeIban || 0);
+      setAusgelassen(data.ausgelassen || []);
     } catch (err) {
       setFehler(err.message);
     } finally {
@@ -65,6 +69,8 @@ export default function SepaPanel({ pin }) {
           sepaKontoinhaber: kontoinhaber,
           sepaIban: iban,
           sepaBic: bic,
+          spendenKontoinhaber,
+          spendenKontoIban,
           executionDate: ausfuehrungsdatum,
           verwendungszweckVorlage: verwendungszweck,
         }),
@@ -73,6 +79,7 @@ export default function SepaPanel({ pin }) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Erzeugen fehlgeschlagen.");
       }
+      const anzahlAusgelassen = res.headers.get("X-Ausgelassen");
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -80,7 +87,13 @@ export default function SepaPanel({ pin }) {
       a.download = `trabi-sepa-${ausfuehrungsdatum}.xml`;
       a.click();
       URL.revokeObjectURL(url);
-      setErfolg(`SEPA-XML mit ${zahlungen?.length ?? 0} Zahlungen heruntergeladen.`);
+      setErfolg(
+        `SEPA-XML mit ${zahlungen?.length ?? 0} Zahlungen heruntergeladen.` +
+          (anzahlAusgelassen && Number(anzahlAusgelassen) > 0
+            ? ` ${anzahlAusgelassen} Person(en) wurden ausgelassen (siehe Liste unten).`
+            : "")
+      );
+      await laden();
     } catch (err) {
       setFehler(err.message);
     } finally {
@@ -96,9 +109,11 @@ export default function SepaPanel({ pin }) {
       <p className="text-xs text-foreground/50 mb-3">
         Erzeugt eine SEPA-XML-Datei (pain.001), die sich im Online-Banking eurer Bank als
         Sammelüberweisung hochladen lässt – alle &quot;Ja&quot;-Antworten mit gültiger IBAN in einer Datei.
+        Wer im Admin als &quot;spendet&quot; markiert ist, wird automatisch ans Spendenkonto
+        umgeleitet (mit Namen im Verwendungszweck).
       </p>
 
-      <div className="grid sm:grid-cols-2 gap-3 mb-3">
+      <div className="grid sm:grid-cols-2 gap-3 mb-4">
         <div>
           <label className="block text-xs font-medium text-foreground/60 mb-1">
             Kontoinhaber (Absenderkonto)
@@ -155,17 +170,53 @@ export default function SepaPanel({ pin }) {
         </div>
       </div>
 
+      <div className="rounded-lg border border-border bg-accent-light/40 p-3 mb-4">
+        <p className="text-xs font-medium text-accent-dark mb-2">
+          Spendenkonto (für Personen, die laut Admin-Markierung spenden)
+        </p>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-foreground/60 mb-1">
+              Kontoinhaber Spendenkonto
+            </label>
+            <input
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              value={spendenKontoinhaber}
+              onChange={(e) => setSpendenKontoinhaber(e.target.value)}
+              placeholder="z.B. Misereor-Spendenkonto (Fr. Auer)"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-foreground/60 mb-1">
+              IBAN Spendenkonto
+            </label>
+            <input
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              value={spendenKontoIban}
+              onChange={(e) => setSpendenKontoIban(e.target.value)}
+              placeholder="Nur nötig, wenn jemand spendet"
+            />
+          </div>
+        </div>
+      </div>
+
       {!ladend && zahlungen && (
         <p className="text-xs text-foreground/60 mb-3">
-          {zahlungen.length} Zahlung(en) mit gültiger IBAN, Summe {euro(summe)}.
-          {ohneGueltigeIban > 0 && (
-            <span className="text-danger">
-              {" "}
-              {ohneGueltigeIban} Antwort(en) mit &quot;Ja&quot; haben keine gültige IBAN und werden
-              ausgelassen – bitte manuell prüfen.
-            </span>
-          )}
+          {zahlungen.length} Zahlung(en) in der Datei, Summe {euro(summe)}.
         </p>
+      )}
+
+      {ausgelassen.length > 0 && (
+        <div className="text-xs text-danger mb-3">
+          {ausgelassen.length} Person(en) werden ausgelassen:
+          <ul className="list-disc list-inside">
+            {ausgelassen.map((a, i) => (
+              <li key={i}>
+                {a.name} – {a.grund}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       <button

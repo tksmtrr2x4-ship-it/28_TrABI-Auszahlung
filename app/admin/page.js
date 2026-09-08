@@ -5,6 +5,7 @@ import { ORG_NAME } from "@/lib/config";
 import NichtAntworterPanel from "./NichtAntworterPanel";
 import AbschlussPanel from "./AbschlussPanel";
 import SepaPanel from "./SepaPanel";
+import BearbeitenModal from "./BearbeitenModal";
 
 function euro(value) {
   return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(value);
@@ -32,6 +33,7 @@ export default function AdminPage() {
   const [gesamtvermoegenFehler, setGesamtvermoegenFehler] = useState(null);
   const [fehler, setFehler] = useState(null);
   const [ladend, setLadend] = useState(false);
+  const [bearbeiteZeile, setBearbeiteZeile] = useState(null);
 
   async function laden(aktuellePin) {
     const res = await fetch("/api/antworten", { headers: { "x-pin": aktuellePin } });
@@ -113,11 +115,13 @@ export default function AdminPage() {
       "Anteil (%, verbindlich)",
       "Betrag (EUR, vorläufig)",
       "Antwort",
+      "Spendet",
       "IBAN",
       "E-Mail",
       "E-Mail-Status",
       "AGB-Version",
       "AGB akzeptiert am",
+      "Interner Hinweis",
       "Zeitpunkt",
     ];
     const rows = zeilen.map((z) => [
@@ -127,11 +131,13 @@ export default function AdminPage() {
       prozent(z.anteilProzent),
       z.betrag.toFixed(2).replace(".", ","),
       z.status !== "Aktiv" ? "Ausgeschlossen" : z.geantwortet ? (z.moechteAuszahlung ? "Ja" : "Nein") : "Ausstehend",
+      z.spendet ? "Ja" : "",
       z.iban || "",
       z.email || "",
       z.emailStatus || "",
       z.agbVersion || "",
       z.agbAkzeptiertAm ? zeitpunkt(z.agbAkzeptiertAm) : "",
+      z.bearbeitungsHinweis || "",
       z.aktualisiertAm ? zeitpunkt(z.aktualisiertAm) : "",
     ]);
     const csv = [header, ...rows]
@@ -247,6 +253,7 @@ export default function AdminPage() {
               <Th>E-Mail</Th>
               <Th>E-Mail-Status</Th>
               <Th>Zeitpunkt</Th>
+              <Th></Th>
             </tr>
           </thead>
           <tbody>
@@ -262,8 +269,11 @@ export default function AdminPage() {
                   {z.status === "Aktiv" && !z.geantwortet && (
                     <span className="text-foreground/40">Ausstehend</span>
                   )}
-                  {z.status === "Aktiv" && z.geantwortet && z.moechteAuszahlung && (
+                  {z.status === "Aktiv" && z.geantwortet && z.moechteAuszahlung && !z.spendet && (
                     <span className="text-accent-dark font-medium">Ja</span>
+                  )}
+                  {z.status === "Aktiv" && z.geantwortet && z.moechteAuszahlung && z.spendet && (
+                    <span className="text-accent-dark font-medium">Ja · spendet</span>
                   )}
                   {z.status === "Aktiv" && z.geantwortet && !z.moechteAuszahlung && <span>Nein</span>}
                 </Td>
@@ -271,11 +281,33 @@ export default function AdminPage() {
                 <Td>{z.email || "–"}</Td>
                 <Td>{z.emailStatus || "–"}</Td>
                 <Td>{zeitpunkt(z.aktualisiertAm)}</Td>
+                <Td>
+                  {z.antwortId && (
+                    <button
+                      onClick={() => setBearbeiteZeile(z)}
+                      className="text-xs text-accent hover:underline"
+                    >
+                      Bearbeiten
+                    </button>
+                  )}
+                </Td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {bearbeiteZeile && (
+        <BearbeitenModal
+          zeile={bearbeiteZeile}
+          pin={pin}
+          onClose={() => setBearbeiteZeile(null)}
+          onSaved={() => {
+            setBearbeiteZeile(null);
+            laden(pin);
+          }}
+        />
+      )}
 
       <div className="mt-6">
         <SepaPanel pin={pin} />
