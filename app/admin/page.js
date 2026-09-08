@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { ORG_NAME } from "@/lib/config";
 import NichtAntworterPanel from "./NichtAntworterPanel";
 import AbschlussPanel from "./AbschlussPanel";
+import SepaPanel from "./SepaPanel";
 
 function euro(value) {
   return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(value);
@@ -277,6 +278,10 @@ export default function AdminPage() {
       </div>
 
       <div className="mt-6">
+        <SepaPanel pin={pin} />
+      </div>
+
+      <div>
         <AbschlussPanel pin={pin} />
       </div>
     </main>

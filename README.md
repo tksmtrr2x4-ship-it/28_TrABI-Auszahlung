@@ -127,11 +127,17 @@ Bestätigungs-Mail verschickt.
 
 ### Nach Fristablauf: Abschluss
 
-Im Admin-Bereich gibt es zwei weitere Aktionen für den Abschluss:
+Im Admin-Bereich gibt es drei weitere Aktionen für den Abschluss:
 
 - **Nicht-Antworter ausschließen** – markiert alle Gesellschafter:innen ohne
   Antwort als "Ausgeschlossen (Frist verpasst)" (§ 6 AGB). Kein Hard-Delete,
   der Datensatz bleibt für die Buchhaltung nachvollziehbar.
+- **SEPA-Sammelüberweisung** – erzeugt eine SEPA-XML-Datei (pain.001.001.03,
+  siehe `lib/sepa.js`) mit allen "Ja"-Antworten und gültiger IBAN, die sich
+  im Online-Banking der Bank als Sammelüberweisung hochladen lässt. Braucht
+  einmalig Kontoinhaber + IBAN (+ optional BIC) des Absenderkontos sowie ein
+  Ausführungsdatum; Namen/Verwendungszweck werden automatisch in den
+  SEPA-konformen Zeichensatz transliteriert (ä→ae usw.).
 - **Abschluss versenden** – verschickt an alle "Ja"-Antworten den
   endgültigen Betrag als E-Mail inkl. professionellem PDF-Anhang (erzeugt
   mit `pdfkit`, siehe `lib/pdf.js`). Ein frei editierbarer Erläuterungstext

@@ -11,6 +11,12 @@ const EinstellungenSchema = new mongoose.Schema({
   // Erläuterungstext für die finale Abschluss-Mail/PDF (z.B. Begründung für
   // einen geringeren Betrag als ursprünglich in Aussicht gestellt).
   abschlussText: { type: String, default: "" },
+  // Für den SEPA-Sammelüberweisungs-Export: das Konto, von dem tatsächlich
+  // überwiesen wird (nicht mit den IBANs der Empfänger:innen verwechseln,
+  // die liegen pro Antwort in models/Antwort.js).
+  sepaKontoinhaber: { type: String, default: "" },
+  sepaIban: { type: String, default: "" },
+  sepaBic: { type: String, default: "" },
   aktualisiertAm: { type: Date, default: Date.now },
 });
 
